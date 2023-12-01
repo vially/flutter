@@ -240,6 +240,8 @@ class VsCode {
   //   /usr/share/code/bin/code
   //   /snap/code/current
   //   /usr/share/code-insiders/bin/code-insiders
+  //   /opt/visual-studio-code
+  //   /opt/visual-studio-code-insiders
   // Linux Extensions:
   //   $HOME/.vscode/extensions
   //   $HOME/.vscode-insiders/extensions
@@ -251,6 +253,8 @@ class VsCode {
         '/usr/share/code-insiders',
         '.vscode-insiders',
       ),
+      const VsCodeInstallLocation('/opt/visual-studio-code', '.vscode'),
+      const VsCodeInstallLocation('/opt/visual-studio-code-insiders', '.vscode-insiders'),
     ], fileSystem, platform);
   }
 
