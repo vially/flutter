@@ -15,6 +15,7 @@ import 'package:gen_keycodes/keyboard_maps_code_gen.dart';
 import 'package:gen_keycodes/logical_key_data.dart';
 import 'package:gen_keycodes/macos_code_gen.dart';
 import 'package:gen_keycodes/physical_key_data.dart';
+import 'package:gen_keycodes/sctk_code_gen.dart';
 import 'package:gen_keycodes/testing_key_codes_cc_gen.dart';
 import 'package:gen_keycodes/testing_key_codes_java_gen.dart';
 import 'package:gen_keycodes/utils.dart';
@@ -252,12 +253,16 @@ Future<void> main(List<String> rawArguments) async {
       logicalData,
       readDataFile('windows_scancode_logical_map.json')
     ),
-    'linux': GtkCodeGenerator(
+    'gtk': GtkCodeGenerator(
       physicalData,
       logicalData,
       readDataFile('gtk_modifier_bit_mapping.json'),
       readDataFile('gtk_lock_bit_mapping.json'),
       layoutGoals,
+    ),
+    'sctk': SctkCodeGenerator(
+      physicalData,
+      logicalData,
     ),
     'web': WebCodeGenerator(
       physicalData,

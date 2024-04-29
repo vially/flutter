@@ -1,0 +1,26 @@
+use flutter_engine::ffi::{FlutterLogicalKey, FlutterPhysicalKey};
+use smithay_client_toolkit::seat::keyboard::Keysym;
+
+use crate::keyboard::{SctkLogicalKey, SctkPhysicalKey};
+
+impl From<SctkPhysicalKey> for FlutterPhysicalKey {
+    fn from(value: SctkPhysicalKey) -> Self {
+        let physical: u64 = match value.raw().raw() {
+@@@XKB_SCAN_CODE_MAP@@@
+            _ => 0,
+        };
+
+        FlutterPhysicalKey::new(physical)
+    }
+}
+
+impl From<SctkLogicalKey> for FlutterLogicalKey {
+    fn from(value: SctkLogicalKey) -> Self {
+        let logical: u64 = match value.raw() {
+@@@SCTK_KEYVAL_CODE_MAP@@@
+            keysym => keysym.key_char().unwrap_or_default() as u64,
+        };
+
+        FlutterLogicalKey::new(logical)
+    }
+}
