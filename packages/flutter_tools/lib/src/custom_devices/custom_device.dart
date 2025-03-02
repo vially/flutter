@@ -733,7 +733,7 @@ class CustomDevice extends Device {
 
   @override
   FutureOr<bool> supportsRuntimeMode(BuildMode buildMode) {
-    return buildMode == BuildMode.debug;
+    return true;
   }
 
   @override
