@@ -16,8 +16,11 @@ import '../base/logger.dart';
 import '../base/process.dart';
 import '../base/utils.dart';
 import '../build_info.dart';
+import '../build_system/build_system.dart';
+import '../build_system/targets/linux.dart';
 import '../bundle.dart';
 import '../bundle_builder.dart';
+import '../cache.dart';
 import '../convert.dart';
 import '../device.dart';
 import '../device_port_forwarder.dart';
@@ -767,16 +770,52 @@ class CustomDevice extends Device {
     if (!prebuiltApplication) {
       final String assetBundleDir = getAssetBuildDirectory();
 
-      bundleBuilder ??= BundleBuilder();
+      if (debuggingOptions.buildInfo.mode == BuildMode.debug) {
+        bundleBuilder ??= BundleBuilder();
 
-      // this just builds the asset bundle, it's the same as `flutter build bundle`
-      await bundleBuilder.build(
-        platform: platform,
-        buildInfo: debuggingOptions.buildInfo,
-        mainPath: mainPath,
-        depfilePath: defaultDepfilePath,
-        assetDirPath: assetBundleDir,
-      );
+        // this just builds the asset bundle, it's the same as `flutter build bundle`
+        await bundleBuilder.build(
+          platform: platform,
+          buildInfo: debuggingOptions.buildInfo,
+          mainPath: mainPath,
+          depfilePath: defaultDepfilePath,
+          assetDirPath: assetBundleDir,
+        );
+      } else {
+        final FlutterProject project = FlutterProject.current();
+        final String buildDirectory = getBuildDirectory();
+        final BuildInfo buildInfo = debuggingOptions.buildInfo;
+
+        final Environment environment = Environment(
+          usage: globals.flutterUsage,
+          projectDir: project.directory,
+          packageConfigPath: buildInfo.packageConfigPath,
+          outputDir: globals.fs.directory(buildDirectory),
+          buildDir: project.dartTool.childDirectory('flutter_build'),
+          cacheDir: globals.cache.getRoot(),
+          flutterRootDir: globals.fs.directory(Cache.flutterRoot),
+          engineVersion:
+              globals.artifacts!.isLocalEngine ? null : globals.flutterVersion.engineRevision,
+          defines: <String, String>{
+            // used by the KernelSnapshot target
+            kTargetPlatform: getNameForTargetPlatform(platform),
+            kTargetFile: defaultMainPath,
+            kDeferredComponents: 'false',
+            ...buildInfo.toBuildSystemEnvironment(),
+          },
+          artifacts: globals.artifacts!,
+          fileSystem: globals.fs,
+          logger: globals.logger,
+          processManager: globals.processManager,
+          analytics: globals.analytics,
+          platform: globals.platform,
+          generateDartPluginRegistry: true,
+        );
+
+        final Target target = ProfileBundleLinuxAssets(platform);
+
+        await globals.buildSystem.build(target, environment);
+      }
 
       // if we have a post build step (needed for some embedders), execute it
       if (_config.postBuildCommand != null) {
